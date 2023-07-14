@@ -1,8 +1,10 @@
 
 function main(){
     //ler ficheiro CSV -> comma separated value
-    const data = d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vTtFUr7WvZBD9hyNvZYSrGrVhPjtD725nO6fKxRRlaF-u59e_jjnwOEZV4MXr2pq3TIoCWjJxWmAP5z/pub?gid=716709556&single=true&output=csv", d3.autoType);
+    const data = d3.csv("https://docs.google.com/spreadsheets/d/e/2PACX-1vSbtuhEnvIyILgH3dwOEypQFPlo4bVJ64dH3ok870dcoeh13RRCgGFmuPeZPvJqaI8XgZsMe6Ck8aOl/pub?output=csv", d3.autoType);
+
     var ids = []
+    var idsNotOrganized = []
     var media1
     var mediaAntes
     var media2
@@ -28,6 +30,8 @@ function main(){
     var yUserAntes
     var colorUserApos
     var yUserApos
+
+    var times = []
 
     var caminho = "M513.127319,251.105988"
 	+ "C515.114624,249.986328 516.473145,248.383224 518.822083,248.189728 "
@@ -627,9 +631,12 @@ var caminho2 = "M122.405937,242.241241 "
                 ratingsAntes.push(element.antes);
                 ratingsApos.push(element.apos);
                 ids.push(element.id);
+                idsNotOrganized.push(element.id);
+                times.push(element.time)
             }
 
             var usedIds = []
+
             var indexes = []
             
 
@@ -661,7 +668,7 @@ var caminho2 = "M122.405937,242.241241 "
             }
      
             //SORT THE ARRAY
-            ids.sort(function(a, b){return a - b})
+            //ids.sort(function(a, b){return a - b})
 
             //TITULO
             var svgTitle = d3.select("#div0")
@@ -704,40 +711,7 @@ var caminho2 = "M122.405937,242.241241 "
                 .attr("width", width)
                 .attr("height", height)
 
-            //legenda quadrados e circulos
-            svg.append('text')
-                    .text("Legenda")
-                    .attr('x', 50)
-                    .attr('y', 475)
-                    .style("fill", "#6E9EA4")
-                    .style("font-weight", 800)
-                    .style("font-family", "Roboto")
-                    .style("font-size", '20px')
-            svg.append('circle')
-                    .attr('cx', 70)
-                    .attr('cy', 505)
-                    .attr('r', 10)
-                    .style("fill", "white")
-                    .style('stroke', "black")
-            svg.append('text')
-                .text("Média geral de todos os utilizadores")
-                .attr('x', 85)
-                .attr('y', 510)
-                .style("font-family", "Roboto")
-                .style("fill", "#0d4148")
-            svg.append('rect')
-                .attr('x', 360)
-                .attr('y', 495)
-                .attr('width', 17)
-                .attr('height', 17)
-                .style("fill", "white")
-                .style('stroke', "black")
-            svg.append('text')
-                .text("Utilizador individual")
-                .attr('x', 387)
-                .attr('y', 510)
-                .style("font-family", "Roboto")
-                .style("fill", "#0d4148")
+            
 
             //legenda users
             svg.append('text')
@@ -752,13 +726,45 @@ var caminho2 = "M122.405937,242.241241 "
             var y = 570
             var yt = 585
 
+            //CORES AO LONGO DO TEMPO
+            var coresAntes = [] //max 4
+            var coresDepois = []
+
+            //POSIÇÕES AO LONGO DO TEMPO
+            var posiAntes = [] //max 4
+            var posiDepois = []
+
+            //SE TIVERMOS MAIS DE 4 RATING
+            //antes
+            var pa1 = 0
+            var pa2 = 0
+            var pa3 = 0
+            var pa4 = 0
+            var ca1 = ''
+            var ca2 = ''
+            var ca3 = ''
+            var ca4 = ''
+            //depois
+            var pd1 = 0
+            var pd2 = 0
+            var pd3 = 0
+            var pd4 = 0
+            var cd1 = ''
+            var cd2 = ''
+            var cd3 = ''
+            var cd4 = ''
+
+            var timesToPrint = []
+
+            var idToConsider = 0
+
             for(let index = 0; index < indexes.length; index++){
 
                 var indexForInfo0 = indexes[index]
                 
                 id = ids[indexForInfo0];
-                
-               
+
+
                 //Seleção do user
                 svg.append('text')
                 .text("User: " + id)
@@ -768,7 +774,7 @@ var caminho2 = "M122.405937,242.241241 "
                 .style("fill", "#0d4148")
 
                 svg.append('rect')
-                .attr("id", id)
+                .attr("id", 'userc' + id)
                 .attr('x', 60)
                 .attr('y', y)
                 .attr('width', 20)
@@ -777,6 +783,7 @@ var caminho2 = "M122.405937,242.241241 "
                 .style('stroke', "black")
 
                 .on('click', function(e, d){
+
                     //get ratings of the selected person
 
                     var indexToGet
@@ -787,58 +794,131 @@ var caminho2 = "M122.405937,242.241241 "
                     }
 
                     if (!d3.select(this).classed("selected") ){
+                        
                         idToConsider = ids[indexes[index]]
-                        //idToConsider = this.id
                         ratingAntes = ratingsAntes[indexToGet]
                         ratingApos = ratingsApos[indexToGet]
-                        console.log("Supostamente funciona") 
-                        console.log(ratingAntes)
-                        console.log(ratingApos)
 
-                         //SQUARES USER INDIVIDUAL
+                        //drawLineChart()
+
+
+                        //APAGAR OS QUE ESTAVAM LA
+                        d3.select("#circle1").remove()
+                        d3.select("#circle2").remove()
+                        d3.select("#circle3").remove()
+                        d3.select("#circle4").remove()
+                        d3.select("#rect1").remove()
+                        d3.select("#rect2").remove()
+                        d3.select("#rect3").remove()
+                        d3.select("#rect4").remove()
+
+
+
+                        //get all ratings by that user
+                        //get the indexes of the selected id
+                        var indexesForRatings = []
+                        for(let index3 = 0; index3 < idsNotOrganized.length; index3++){
+                            if(idsNotOrganized[index3] == idToConsider){
+                                indexesForRatings.push(index3)  
+                            }
+                        }
+                        //get all the rating given
+                        var allRatingsAntesByUser = []
+                        var allRatingsAposByUser = []
+                        for(let index4 = 0; index4 < indexesForRatings.length; index4++){
+                            allRatingsAntesByUser.push(ratingsAntes[index4])
+                            allRatingsAposByUser.push(ratingsApos[index4])
+                        }
+                        
+
+                        //CORES
+                        //SQUARES USER INDIVIDUAL
                         if(ratingAntes >= 0 && ratingAntes < 1.5){
                             colorUserAntes = '#F60D0D';
-                            yUserAntes = 355;
+                            yUserAntes = 372;
                         } else if (ratingAntes >= 1.5 && ratingAntes < 2.5){
                             colorUserAntes = "#FF9900";
-                            yUserAntes = 280;
+                            yUserAntes = 307;
                         } else if (ratingAntes >= 2.5 && ratingAntes < 3.5){
                             colorUserAntes = '#F7F054';
-                            yUserAntes = 205;
+                            yUserAntes = 242;
                         } else if (ratingAntes >= 3.5 && ratingAntes < 4.5){
                             colorUserAntes = '#72FA1E';
-                            yUserAntes = 130;
+                            yUserAntes = 177;
                         } else if (ratingAntes >= 5){
                             colorUserAntes = '#3FD25F';
-                            yUserAntes = 55;
+                            yUserAntes = 112;
                         }
-
-                        console.log("RATING APOS")
-                        console.log(ratingApos)
 
 
                         if(ratingApos >= 0 && ratingApos < 1.5){
                             colorUserApos = '#F60D0D';
-                            yUserApos = 355;
+                            yUserApos = 372;
                         } else if (ratingApos >= 1.5 && ratingApos < 2.5){
                             colorUserApos = "#FF9900";
-                            yUserApos = 280;
+                            yUserApos = 307;
                         } else if (ratingApos >= 2.5 && ratingApos < 3.5){
                             colorUserApos = '#F7F054';
-                            yUserApos = 205;
+                            yUserApos = 242;
                         } else if (ratingApos >= 3.5 && ratingApos < 4.5){
                             colorUserApos = '#72FA1E';
-                            yUserApos = 130;
+                            yUserApos = 177;
                         } else if (ratingApos >= 5){
                             colorUserApos = '#3FD25F';
-                            yUserApos = 55;
+                            yUserApos = 112;
                         }
 
-                
+
+                        //meter a zero
+                        posiAntes = []
+                        posiDepois = []
+                        coresAntes = []
+                        coresDepois = []
+
+                        //CORES ANTES
+                        for(let indexAntes = 0; indexAntes < allRatingsAntesByUser.length; indexAntes++){
+                            if(allRatingsAntesByUser[indexAntes] >= 0 && allRatingsAntesByUser[indexAntes] < 1.5){
+                                coresAntes.push('#F60D0D');
+                                posiAntes.push(385);
+                            } else if (allRatingsAntesByUser[indexAntes] >= 1.5 && allRatingsAntesByUser[indexAntes] < 2.5){
+                                coresAntes.push('#FF9900');
+                                posiAntes.push(320);
+                            } else if (allRatingsAntesByUser[indexAntes] >= 2.5 && allRatingsAntesByUser[indexAntes] < 3.5){
+                                coresAntes.push('#F7F054');
+                                posiAntes.push(255);
+                            } else if (allRatingsAntesByUser[indexAntes] >= 3.5 && allRatingsAntesByUser[indexAntes] < 4.5){
+                                coresAntes.push('#72FA1E');
+                                posiAntes.push(190);
+                            } else if (allRatingsAntesByUser[indexAntes] >= 5){
+                                coresAntes.push('#3FD25F');
+                                posiAntes.push(125);
+                            }
+                        }
+
+                        //CORES DEPOIS
+                        for(let indexDepois = 0; indexDepois < allRatingsAposByUser.length; indexDepois++){
+                            if(allRatingsAposByUser[indexDepois] >= 0 && allRatingsAposByUser[indexDepois] < 1.5){
+                                coresDepois.push('#F60D0D');
+                                posiDepois.push(378);
+                            } else if (allRatingsAposByUser[indexDepois] >= 1.5 && allRatingsAposByUser[indexDepois] < 2.5){
+                                coresDepois.push('#FF9900');
+                                posiDepois.push(313);
+                            } else if (allRatingsAposByUser[indexDepois] >= 2.5 && allRatingsAposByUser[indexDepois] < 3.5){
+                                coresDepois.push('#F7F054');
+                                posiDepois.push(248);
+                            } else if (allRatingsAposByUser[indexDepois] >= 3.5 && allRatingsAposByUser[indexDepois] < 4.5){
+                                coresDepois.push('#72FA1E');
+                                posiDepois.push(183);
+                            } else if (allRatingsAposByUser[indexDepois] >= 5){
+                                coresDepois.push('#3FD25F');
+                                posiDepois.push(118);
+                            }
+                        }
 
                         d3.select(this).classed("selected", true)
-                        d3.select(this)
-                        .style('fill', "#0d4148")
+                            d3.select(this)
+                            .style('fill', "#0d4148")
+
 
                         d3.select('#p3')
                         .attr("id","tooltip")
@@ -847,86 +927,328 @@ var caminho2 = "M122.405937,242.241241 "
                         .attr("id","tooltip2")
                         .attr('style', 'position: absolute; opacity: 0;')
 
-                    
+                        //VER QUAL O GRUPO SELECIONADO: LINE VS CIRCLE CHAT
+                        //CIRCLE CHART
+                        if(d3.select("#ultima").classed("selected") == false){
+                            //square before
+                            svg.append('rect')
+                            .attr("id","rectuserantes" + usedIds[indexToGet])
+                            .attr('x', 137)
+                            .attr('y', yUserAntes)
+                            .attr('width', 25)
+                            .attr('height', 25)
+                            .style("fill", colorUserAntes)
+                            .style('stroke', "black")
+                            .attr('fill-opacity', 0.8)
+                            .on('mouseover', function (d, i) {
+                                a = parseInt(d3.select(this).attr('x')) + 5
+                                b = parseInt(d3.select(this).attr('y')) + 60
+                                d3.select('#tooltip')
+                                .transition().duration(200)
+                                .style('opacity', 1)
+                                .style("left", a + "px")     
+                                .style("top", b + "px")
+                                .text("User: " + usedIds[indexToGet])
+                                .style("color", "#6E9EA4")
+                                .style("font-family", "Roboto")
+                                d3.select(this)
+                                .transition()
+                                .duration('50')
+                                    .attr('opacity', '.8');
+                            })
+                            .on('mouseout', function (d, i) {
+                                d3.select('#tooltip')
+                                .style('opacity', 0)
+                                d3.select(this)
+                                .transition()
+                                .duration('50')
+                                .attr('opacity', '1');
+                            })
 
-                        //square before
-                        svg.append('rect')
-                        .attr("id","rect1")
-                        .attr('x', cx1)
-                        .attr('y', yUserAntes)
-                        .attr('width', 40)
-                        .attr('height', 40)
-                        .style("fill", colorUserAntes)
-                        .style('stroke', "black")
-                        .attr('fill-opacity', 0.8)
-                        .on('mouseover', function (d, i) {
-                            a = parseInt(d3.select(this).attr('x')) + 5
-                            b = parseInt(d3.select(this).attr('y')) + 60
-                            d3.select('#tooltip')
-                            .transition().duration(200)
-                            .style('opacity', 1)
-                            .style("left", a + "px")     
-                            .style("top", b + "px")
-                            .text("User: " + usedIds[indexToGet])
-                            .style("color", "#6E9EA4")
-                            .style("font-family", "Roboto")
-                            d3.select(this)
-                            .transition()
-                            .duration('50')
-                                 .attr('opacity', '.8');
-                        })
-                        .on('mouseout', function (d, i) {
-                            d3.select('#tooltip')
-                            .style('opacity', 0)
-                            d3.select(this)
-                            .transition()
-                            .duration('50')
-                            .attr('opacity', '1');
-                        })
+                            //square after
+                            svg.append('rect')
+                            .attr("id","rectuserdepois" + usedIds[indexToGet])
+                            .attr('x', 337)
+                            .attr('y', yUserApos)
+                            .attr('width', 25)
+                            .attr('height', 25)
+                            .style("fill", colorUserApos)
+                            .style('stroke', "black")
+                            .attr('fill-opacity', 0.8)
+                            .on('mouseover', function (d, i) {
+                                a = parseInt(d3.select(this).attr('x')) + 5
+                                b = parseInt(d3.select(this).attr('y')) + 60
+                                d3.select('#tooltip')
+                                .transition().duration(200)
+                                .style('opacity', 1)
+                                .style("left", a + "px")     
+                                .style("top", b + "px")
+                                .text("User: " + usedIds[indexToGet])
+                                .style("color", "#6E9EA4")
+                                .style("font-family", "Roboto")
+                                d3.select(this)
+                                .transition()
+                                .duration('50')
+                                    .attr('opacity', '.8');
+                            })
+                            .on('mouseout', function (d, i) {
+                                d3.select('#tooltip')
+                                .style('opacity', 0)
+                                d3.select(this)
+                                .transition()
+                                .duration('50')
+                                .attr('opacity', '1');
+                            })
+                            
+                        }
+                        //LINE CHART
+                        else {
+                            drawLineChart()
+                            //PARA AS CORES
+                            //the others get lighter and deselect them
+                            for(let index1 = 0; index1 < indexes.length; index1++){
+                                if(ids[indexes[index1]] != ids[indexes[index]]){
+                                    var teste = 'userc' + ids[indexes[index1]]
+                                    var testee = d3.select("#" + teste)
+                            
+                                    testee.classed("selected", false)
+                                        .style('fill', "#6E9EA4")
+                                }
+                                
+                                
+                            }
+                            
 
-                        console.log("COR APOS")
-                        console.log(colorUserApos)
+                            //METER TUDO A ZERO
+                            pa1 = 0
+                            pa2 = 0
+                            pa3 = 0
+                            pa4 = 0
+                            ca1 = ''
+                            ca2 = ''
+                            ca3 = ''
+                            ca4 = ''
+                            //depois
+                            pd1 = 0
+                            pd2 = 0
+                            pd3 = 0
+                            pd4 = 0
+                            cd1 = ''
+                            cd2 = ''
+                            cd3 = ''
+                            cd4 = ''
 
-                        //square after
-                        svg.append('rect')
-                        .attr("id","rect2")
-                        .attr('x', cx2)
-                        .attr('y', yUserApos)
-                        .attr('width', 40)
-                        .attr('height', 40)
-                        .style("fill", colorUserApos)
-                        .style('stroke', "black")
-                        .attr('fill-opacity', 0.8)
-                        .on('mouseover', function (d, i) {
-                            a = parseInt(d3.select(this).attr('x')) + 5
-                            b = parseInt(d3.select(this).attr('y')) + 60
-                            d3.select('#tooltip')
-                            .transition().duration(200)
-                            .style('opacity', 1)
-                            .style("left", a + "px")     
-                            .style("top", b + "px")
-                            .text("User: " + usedIds[indexToGet])
-                            .style("color", "#6E9EA4")
-                            .style("font-family", "Roboto")
-                            d3.select(this)
-                            .transition()
-                            .duration('50')
-                                 .attr('opacity', '.8');
-                        })
-                        .on('mouseout', function (d, i) {
-                            d3.select('#tooltip')
-                            .style('opacity', 0)
-                            d3.select(this)
-                            .transition()
-                            .duration('50')
-                            .attr('opacity', '1');
-                        })
+
+                            
+                            if(posiDepois.length > 4){
+                                pd1 = posiDepois[posiDepois.length -4]
+                                pd2 = posiDepois[posiDepois.length -3]
+                                pd3 = posiDepois[posiDepois.length -2]
+                                pd4 = posiDepois[posiDepois.length -1]
+                                pa1 = posiAntes[posiAntes.length -4]
+                                pa2 = posiAntes[posiAntes.length -3]
+                                pa3 = posiAntes[posiAntes.length -2]
+                                pa4 = posiAntes[posiAntes.length -1]
+
+                                cd1 = coresDepois[coresDepois.length -4]
+                                cd2 = coresDepois[coresDepois.length -3]
+                                cd3 = coresDepois[coresDepois.length -2]
+                                cd4 = coresDepois[coresDepois.length -1]
+                                ca1 = coresAntes[coresAntes.length -4]
+                                ca2 = coresAntes[coresAntes.length -3]
+                                ca3 = coresAntes[coresAntes.length -2]
+                                ca4 = coresAntes[coresAntes.length -1]
+                            }
+                            //MENOS DE QUATRO RATINGS
+                            else{
+                                pd1 = posiDepois[0]
+                                pd2 = posiDepois[1]
+                                pd3 = posiDepois[2]
+                                pd4 = posiDepois[3]
+                                pa1 = posiAntes[0]
+                                pa2 = posiAntes[1]
+                                pa3 = posiAntes[2]
+                                pa4 = posiAntes[3]
+
+                                cd1 = coresDepois[0]
+                                cd2 = coresDepois[1]
+                                cd3 = coresDepois[2]
+                                cd4 = coresDepois[3]
+                                ca1 = coresAntes[0]
+                                ca2 = coresAntes[1]
+                                ca3 = coresAntes[2]
+                                ca4 = coresAntes[3]
+
+                            }
+                            //APAGAR OS QUE ESTAVAM LA
+                            d3.select("#circle1").remove()
+                            d3.select("#circle2").remove()
+                            d3.select("#circle3").remove()
+                            d3.select("#circle4").remove()
+                            d3.select("#rect1").remove()
+                            d3.select("#rect2").remove()
+                            d3.select("#rect3").remove()
+                            d3.select("#rect4").remove()
+
+                            
+                            //SQUARES: VALORES ANTES
+                            //FIRST SQUARE
+                            if(pa1 != null){
+                                svg.append('circle')
+                                .attr('id', 'circle1')
+                                .attr('cx', 133)
+                                .attr('cy', pa1)
+                                .attr('r', 7.5)
+                                .style("fill", ca1)
+                                .style('stroke', "black")
+                                .attr('fill-opacity', 0.8)
+                                
+
+                            }
+                        
+
+                            //SECOND SQUARE
+                            if(pa2 != null){
+                                svg.append('circle')
+                            .attr('id', 'circle2')
+                            .attr('cx', 208)
+                            .attr('cy', pa2)
+                            .attr('r', 7.5)
+                            .style("fill", ca2)
+                            .style('stroke', "black")
+                            .attr('fill-opacity', 0.8)
+                        
+
+                            }                            
+
+                            //THIRD SQUARE
+                            if(pa3 != null){
+                                svg.append('circle')
+                            .attr('id', 'circle3')
+                            .attr('cx', 283)
+                            .attr('cy', pa3)
+                            .attr('r', 7.5)
+                            .style("fill", ca3)
+                            .style('stroke', "black")
+                            .attr('fill-opacity', 0.8)
+                            
+
+                            }
+                        
+
+                            //FIURTH SQUARE
+                            if(pa4 != null) {
+                                svg.append('circle')
+                            .attr('id', 'circle4')
+                            .attr('cx', 358)
+                            .attr('cy', pa4)
+                            .attr('r', 7.5)
+                            .attr('width', 15)
+                            .attr('height', 15)
+                            .style("fill", ca4)
+                            .style('stroke', "black")
+                            .attr('fill-opacity', 0.8)
+                            
+
+                            }
+                            
+
+                            //CIRCLES: VALORES APOS
+                            //FIRST SQUARE
+                            if(pd1 != null){
+                                svg.append('rect')
+                            .attr("id","rect1")
+                            .attr('x', 125)
+                            .attr('y', pd1)
+                            .attr('width', 15)
+                            .attr('height', 15)
+                            .style("fill", cd1)
+                            .style('stroke', "black")
+                            .attr('fill-opacity', 0.8)
+                            
+
+                            }
+                            
+
+                            //SECOND SQUARE
+                            if(pd2 != null) {
+                                svg.append('rect')
+                            .attr("id","rect2")
+                            .attr('x', 200)
+                            .attr('y', pd2)
+                            .attr('width', 15)
+                            .attr('height', 15)
+                            .style("fill", cd2)
+                            .style('stroke', "black")
+                            .attr('fill-opacity', 0.8)
+                            
+
+                            }
+                            
+
+                            //THIRD SQUARE
+                            if (pd3 != null){
+                                svg.append('rect')
+                            .attr("id","rect3")
+                            .attr('x', 275)
+                            .attr('y', pd3)
+                            .attr('width', 15)
+                            .attr('height', 15)
+                            .style("fill", cd3)
+                            .style('stroke', "black")
+                            .attr('fill-opacity', 0.8)
+                            
+
+                            }
+                            
+
+                            //FIURTH SQUARE
+                            if(pd4 != null){
+                                svg.append('rect')
+                            .attr("id","rect4")
+                            .attr('x', 350)
+                            .attr('y', pd4)
+                            .attr('width', 15)
+                            .attr('height', 15)
+                            .style("fill", cd4)
+                            .style('stroke', "black")
+                            .attr('fill-opacity', 0.8)
+                            
+
+                            }
+                            
+                            
+                        }
+
+                        
                     }else{
                         d3.select(this).classed("selected", false);
                         d3.select(this)
                         .style('fill', "#6E9EA4")
+                        for(let index1 = 0; index1 < indexes.length; index1++){
+                
+                            //so quero remover o used que foi unselected
+                            var teste = 'rectuserantes' + ids[indexes[index]]
+                            var testee = d3.select("#" + teste)
+                            testee.remove()
+                            var teste1 = 'rectuserdepois' + ids[indexes[index]]
+                            var testee1 = d3.select("#" + teste1)
+                            testee1.remove()
+                        
+                            testee.classed("selected", false)
+                                .style('fill', "#6E9EA4")
+
+                        }
+        
+                        //APAGAR OS QUE ESTAVAM LA
+                        d3.select("#circle1").remove()
+                        d3.select("#circle2").remove()
+                        d3.select("#circle3").remove()
+                        d3.select("#circle4").remove()
                         d3.select("#rect1").remove()
                         d3.select("#rect2").remove()
+                        d3.select("#rect3").remove()
+                        d3.select("#rect4").remove()
                     }
 
                 
@@ -935,6 +1257,178 @@ var caminho2 = "M122.405937,242.241241 "
             yt = yt + 30;
             }
 
+
+            svg.append('text')
+                    .text("Filtros para o mapa")
+                    .attr('x', 50)
+                    .attr('y', 25)
+                    .style("fill", "#6E9EA4")
+                    .style("font-weight", 800)
+                    .style("font-family", "Roboto")
+                    .style("font-size", '20px')
+
+            drawCircleChart() 
+
+
+            //BOTAO SWB ULTIMA CONSULTA
+            var ultima = svg.append("g");
+            ultima.append('rect')
+                .attr("id", 'ultima')
+                .attr('x', 60)
+                .attr('y', 40)
+                .attr('width', 190)
+                .attr('height', 25)
+                .style("fill", "#0d4148")
+                .style('stroke', "black")
+                .classed("selected", false)
+                .on('click', function(e, d){
+                    //APAGAR OS QUE ESTAVAM LA
+                    d3.select("#circle1").remove()
+                    d3.select("#circle2").remove()
+                    d3.select("#circle3").remove()
+                    d3.select("#circle4").remove()
+                    d3.select("#rect1").remove()
+                    d3.select("#rect2").remove()
+                    d3.select("#rect3").remove()
+                    d3.select("#rect4").remove()  
+        
+                    //deselect as outras
+                    if(d3.select("#todas").classed("selected")){
+                        d3.select("#todas").classed("selected", false)
+                        d3.select("#todas")
+                            .style('fill', "#6E9EA4")
+                        //METER OS USERS TODOS A AZUL CLARO QUANDO VOLTO PARA OS CIRCULOS
+                        for(let index1 = 0; index1 < indexes.length; index1++){
+                            var teste = 'userc' + ids[indexes[index1]]
+                            var testee = d3.select("#" + teste)
+
+                            testee.classed("selected", false)
+                                .style('fill', "#6E9EA4")
+        
+                        }
+                    }
+                    if (!d3.select(this).classed("selected") ){
+                        d3.select(this).classed("selected", true)
+                        d3.select(this)
+                        .style('fill', "#6E9EA4")
+                        d3.select("#circleAntes").remove()
+                        d3.select("#circleDepois").remove()
+                        //apagar todos os quadrados criados
+                        for(let index1 = 0; index1 < indexes.length; index1++){
+                            var teste = 'rectuserantes' + ids[indexes[index1]]
+                            var testee = d3.select("#" + teste)
+                            testee.remove()
+                            var teste1 = 'rectuserdepois' + ids[indexes[index1]]
+                            var testee1 = d3.select("#" + teste1)
+                            testee1.remove()
+
+                            var teste2 = 'userc' + ids[indexes[index1]]
+                            var testee2 = d3.select("#" + teste2)
+                            
+                            testee2.classed("selected", false)
+                            .style('fill', "#6E9EA4")
+                        }
+                        //meter quadrados a azul claro
+
+                        d3.select("#legendaCircle1").remove()
+                        d3.select("#legendaCircle2").remove()
+                        d3.select("#overall5").remove()
+                        d3.select("#overall2").remove()
+                        d3.select("#overall3").remove()
+                        d3.select("#overall4").remove()
+
+                    
+
+                    }else{
+                        d3.select(this).classed("selected", false);
+                        d3.select(this)
+                        .style('fill', "#0d4148")
+                        
+                        drawCircleChart()
+                    }
+
+                });
+
+                ultima.append('text')
+                    .text("Bem estar na última consulta")
+                    .attr('x', 80)
+                    .attr('y', 55)
+                    .style("fill", "white")
+                    .style("font-weight", 800)
+                    .style("font-family", "Roboto")
+                    .style("font-size", '12px')
+
+
+
+
+                //BOTAO SWB TODAS
+                var todas = svg.append("g");
+                todas.append('rect')
+                    .attr("id", 'todas')
+                    .attr('x', 280)
+                    .attr('y', 40)
+                    .attr('width', 190)
+                    .attr('height', 25)
+                    .style("fill", "#6E9EA4")
+                    .style('stroke', "black")
+                    .on('click', function(e, d){
+                        //meter a null para limpar o gráfico
+                        idToConsider = null
+                        //deselect as outras
+                        if(!d3.select("#ultima").classed("selected")){
+                            d3.select("#ultima").classed("selected", true)
+                            d3.select("#ultima")
+                                .style('fill', "#6E9EA4")                           
+                                drawLineChart()
+
+                            //meter os users selecionados todos a nulo e epagar os quadrados
+                            for(let index1 = 0; index1 < indexes.length; index1++){
+                                var teste = 'userc' + ids[indexes[index1]]
+                                var testee = d3.select("#" + teste)
+
+                                testee.classed("selected", false)
+                                    .style('fill', "#6E9EA4")
+            
+                            }
+
+                        }
+                        if (!d3.select(this).classed("selected") ){
+                            d3.select(this).classed("selected", true)
+                            d3.select(this)
+                            .style('fill', "#0d4148")
+                            
+                            drawLineChart()
+                            
+    
+                        }else{
+                            d3.select(this).classed("selected", false);
+                            d3.select(this)
+                            .style('fill', "#6E9EA4")
+                            d3.select("#legendaLine1").remove()
+                            d3.select("#legendaLine2").remove()
+                            d3.select("#legendaLine3").remove()
+                            d3.select("#legendaLine4").remove()
+                            d3.select("#overallb").remove()
+                            d3.select("#overallc").remove()
+                            d3.select("#overalld").remove()
+                            d3.select("#overalle").remove()
+    
+                        }     
+                    
+                    });
+
+
+                todas.append('text')
+                    .text("Evolução ao longo do tempo")
+                    .attr('x', 300)
+                    .attr('y', 55)
+                    .style("fill", "white")
+                    .style("font-weight", 800)
+                    .style("font-family", "Roboto")
+                    .style("font-size", '12px')
+
+
+        
             
 
             //linha dos x
@@ -947,27 +1441,13 @@ var caminho2 = "M122.405937,242.241241 "
                 .style("stroke-width", 2.5)
                 .style("color", "#0d4148FF")
             
-            //legenda linha x
-            svg.append('text')
-                .text("Antes da consulta")
-                .attr('x', 90)
-                .attr('y', 440)
-                .style("font-family", "Roboto")
-                .style("fill", "#0d4148FF")
-
-            //legenda linha x
-            svg.append('text')
-                .text("Após a consulta")
-                .attr('x', 300)
-                .attr('y', 440)
-                .style("font-family", "Roboto")
-                .style("fill", "#0d4148FF")
+            
                 
             //linha dos y
             svg.append('line')
                 .attr('x1', 70)
                 .attr('x2', 70)
-                .attr('y1', 40)
+                .attr('y1', 90)
                 .attr('y2', 418)
                 .style("stroke", "black")
                 .style("stroke-width", 2.5)
@@ -977,41 +1457,41 @@ var caminho2 = "M122.405937,242.241241 "
             svg.append('rect')
                 .attr("id", id)
                 .attr('x', 59)
-                .attr('y', 40)
+                .attr('y', 90)
                 .attr('width', 10)
-                .attr('height', 75)
+                .attr('height', 65)
                 .style("fill", "#3FD25F")
                 .style('stroke', "black")
             svg.append('rect')
                 .attr("id", id)
                 .attr('x', 59)
-                .attr('y', 115)
+                .attr('y', 155)
                 .attr('width', 10)
-                .attr('height', 75)
+                .attr('height', 65)
                 .style("fill", "#72FA1E")
                 .style('stroke', "black")
             svg.append('rect')
                 .attr("id", id)
                 .attr('x', 59)
-                .attr('y', 190)
+                .attr('y', 220)
                 .attr('width', 10)
-                .attr('height', 75)
+                .attr('height', 65)
                 .style("fill", "#F7F054")
                 .style('stroke', "black")
             svg.append('rect')
                 .attr("id", id)
                 .attr('x', 59)
-                .attr('y', 265)
+                .attr('y', 285)
                 .attr('width', 10)
-                .attr('height', 75)
+                .attr('height', 65)
                 .style("fill", "#FF9900")
                 .style('stroke', "black")
             svg.append('rect')
                 .attr("id", id)
                 .attr('x', 59)
-                .attr('y', 340)
+                .attr('y', 350)
                 .attr('width', 10)
-                .attr('height', 77)
+                .attr('height', 67)
                 .style("fill", "#F60D0D")
                 .style('stroke', "black")
 
@@ -1020,78 +1500,146 @@ var caminho2 = "M122.405937,242.241241 "
             svg.append('text')
                 .text("5")
                 .attr('x', 45)
-                .attr('y', 80)
+                .attr('y', 125)
                 .style("font-family", "Roboto")
                 .style("color", "#0d4148")
 
             svg.append('text')
                 .text("4")
                 .attr('x', 45)
-                .attr('y', 155)
+                .attr('y', 190)
                 .style("font-family", "Roboto")
                 .style("color", "#0d4148")
 
             svg.append('text')
                 .text("3")
                 .attr('x', 45)
-                .attr('y', 230)
+                .attr('y', 255)
                 .style("font-family", "Roboto")
                 .style("color", "#0d4148")
 
             svg.append('text')
                 .text("2")
                 .attr('x', 45)
-                .attr('y', 305)
+                .attr('y', 320)
                 .style("font-family", "Roboto")
                 .style("color", "#0d4148")
 
             svg.append('text')
                 .text("1")
                 .attr('x', 45)
-                .attr('y', 380)
+                .attr('y', 385)
                 .style("font-family", "Roboto")
                 .style("color", "#0d4148")
 
-                
+            function drawCircleChart(){
+                svg.select("#legendaLine1").remove()
+                svg.select("#legendaLine2").remove()
+                svg.select("#legendaLine3").remove()
+                svg.select("#legendaLine4").remove()
+                svg.select("#overalla").remove()
+                svg.select("#overallb").remove()
+                svg.select("#overallc").remove()
+                svg.select("#overalld").remove()
+                svg.select("#overalle").remove()
+
+                //legenda quadrados e circulos
+                svg.append('text')
+                    .attr('id', 'overall1')
+                    .text("Legenda")
+                    .attr('x', 50)
+                    .attr('y', 475)
+                    .style("fill", "#6E9EA4")
+                    .style("font-weight", 800)
+                    .style("font-family", "Roboto")
+                .style("font-size", '20px')
+                svg.append('circle')
+                .attr('id', 'overall2')
+                    .attr('cx', 70)
+                    .attr('cy', 505)
+                    .attr('r', 10)
+                    .style("fill", "white")
+                    .style('stroke', "black")
+                svg.append('text')
+                .attr('id', 'overall3')
+                    .text("Média geral de todos os utilizadores")
+                    .attr('x', 85)
+                    .attr('y', 510)
+                    .style("font-family", "Roboto")
+                    .style("fill", "#0d4148")
+                svg.append('rect')
+                .attr('id', 'overall4')
+                    .attr('x', 360)
+                    .attr('y', 495)
+                    .attr('width', 17)
+                    .attr('height', 17)
+                    .style("fill", "white")
+                    .style('stroke', "black")
+                svg.append('text')
+                .attr('id', 'overall5')
+                    .text("Os seus valores")
+                    .attr('x', 387)
+                    .attr('y', 510)
+                    .style("font-family", "Roboto")
+                    .style("fill", "#0d4148")
+
+                //legenda linha x
+                svg.append('text')
+                    .attr('id', 'legendaCircle1')
+                    .text("Antes da consulta")
+                    .attr('x', 90)
+                    .attr('y', 440)
+                    .style("font-family", "Roboto")
+                    .style("fill", "#0d4148FF")
+
+                //legenda linha x
+                svg.append('text')
+                    .attr('id', 'legendaCircle2')
+                    .text("Após a consulta")
+                    .attr('x', 300)
+                    .attr('y', 440)
+                    .style("font-family", "Roboto")
+                    .style("fill", "#0d4148FF")
+
                 //CIRCLES GERAL
 
                 if(mediaAntes >= 0 && mediaAntes < 1.5){
                     colorAntes = '#F60D0D';
-                    cyAntes = 375;
+                    cyAntes = 385;
                 } else if (mediaAntes >= 1.5 && mediaAntes < 2.5){
                     colorAntes = "#FF9900";
-                    cyAntes = 300;
+                    cyAntes = 320;
                 } else if (mediaAntes >= 2.5 && mediaAntes < 3.5){
                     colorAntes = '#F7F054';
-                    cyAntes = 225;
+                    cyAntes = 255;
                 } else if (mediaAntes >= 3.5 && mediaAntes < 4.5){
                     colorAntes = '#72FA1E';
-                    cyAntes = 150;
+                    cyAntes = 190;
                 } else if (mediaAntes >= 4.5){
                     colorAntes = '#3FD25F';
-                    cyAntes = 75;
+                    cyAntes = 125;
                 }
 
-    
                 if(mediaApos >= 0 && mediaApos < 1.5){
                     colorApos = '#F60D0D';
-                    cyApos = 375;
+                    cyApos = 385;
                 } else if (mediaApos >= 1.5 && mediaApos < 2.5){
                     colorApos = "#FF9900";
-                    cyApos = 300;
+                    cyApos = 320;
                 } else if (mediaApos >= 2.5 && mediaApos < 3.5){
                     colorApos = '#F7F054';
-                    cyApos = 225;
+                    cyApos = 255;
                 } else if (mediaApos >= 3.5 && mediaApos < 4.5){
                     colorApos = '#72FA1E';
-                    cyApos = 150;
+                    cyApos = 190;
                 } else if (mediaApos >= 4.5){
                     colorApos = '#3FD25F';
-                    cyApos = 75;
+                    cyApos = 125;
                 }
     
                 //CIRCLE ANTES GERAL
                 svg.append('circle')
+                    .attr('id', 'circleAntes')
                     .attr('cx', cxAntes)
                     .attr('cy', cyAntes)
                     .attr('r', circleRadius)
@@ -1101,14 +1649,200 @@ var caminho2 = "M122.405937,242.241241 "
     
                 //CIRCLE APOS GERAL
                 svg.append('circle')
+                    .attr('id', 'circleDepois')
                     .attr('cx', cxApos)
                     .attr('cy', cyApos)
                     .attr('r', circleRadius)
                     .style("fill", colorApos)
                     .style('stroke', "black")
+            }
+
+            
+
+            function drawLineChart(){
+                d3.select("#legendaLine1").remove()
+                d3.select("#legendaLine2").remove()
+                d3.select("#legendaLine3").remove()
+                d3.select("#legendaLine4").remove()
+                d3.select("#overallb").remove()
+                d3.select("#overallc").remove()
+                d3.select("#overalld").remove()
+                d3.select("#overalle").remove()
 
 
+                svg.select("#legendaCircle1").remove()
+                svg.select("#legendaCircle2").remove()
+                svg.select("#circleAntes").remove()
+                svg.select("#circleDepois").remove()
+                for(let index1 = 0; index1 < indexes.length; index1++){
+                    var teste = 'rectuserantes' + ids[indexes[index1]]
+                    var testee = d3.select("#" + teste)
+                    testee.remove()
+                    var teste1 = 'rectuserdepois' + ids[indexes[index1]]
+                    var testee1 = d3.select("#" + teste1)
+                    testee1.remove()
+                }
 
+                svg.select("#overall1").remove()
+                svg.select("#overall2").remove()
+                svg.select("#overall3").remove()
+                svg.select("#overall4").remove()
+                svg.select("#overall5").remove()
+
+                //legenda quadrados e circulos
+                svg.append('text')
+                    .attr('id', 'overalla')
+                    .text("Legenda")
+                    .attr('x', 50)
+                    .attr('y', 475)
+                    .style("fill", "#6E9EA4")
+                    .style("font-weight", 800)
+                    .style("font-family", "Roboto")
+                .style("font-size", '20px')
+                svg.append('circle')
+                .attr('id', 'overallb')
+                    .attr('cx', 70)
+                    .attr('cy', 505)
+                    .attr('r', 10)
+                    .style("fill", "white")
+                    .style('stroke', "black")
+                svg.append('text')
+                .attr('id', 'overallc')
+                    .text("Valores antes da consulta")
+                    .attr('x', 85)
+                    .attr('y', 510)
+                    .style("font-family", "Roboto")
+                    .style("fill", "#0d4148")
+                svg.append('rect')
+                .attr('id', 'overalld')
+                    .attr('x', 360)
+                    .attr('y', 495)
+                    .attr('width', 17)
+                    .attr('height', 17)
+                    .style("fill", "white")
+                    .style('stroke', "black")
+                svg.append('text')
+                .attr('id', 'overalle')
+                    .text("Valores após a consulta")
+                    .attr('x', 387)
+                    .attr('y', 510)
+                    .style("font-family", "Roboto")
+                    .style("fill", "#0d4148")
+
+
+                //ver as ultimas 4 consultas
+                //legenda linha x
+
+                //Meter a zero
+                timesToPrint = []
+
+                var indexesForRatings = []
+                for(let index3 = 0; index3 < idsNotOrganized.length; index3++){
+                    if(idsNotOrganized[index3] == idToConsider){
+                        indexesForRatings.push(index3)  
+                    }
+                }
+                for(let index4 = 0; index4 < idsNotOrganized.length; index4++){
+                    if(indexesForRatings.includes(index4)){
+                        timesToPrint.push(times[index4])
+                    }  
+                }
+
+
+                //SE TIVER QUATRO OU MENOS
+                if(timesToPrint.length < 5){
+                    if(timesToPrint[0] != null){
+                        svg.append('text')
+                            .attr('id', 'legendaLine1') 
+                            .text(timesToPrint[0])
+                            .attr('x', 80)
+                            .attr('y', 440)
+                            .style("font-family", "Roboto")
+                            .style("font-size", '12px')
+                            .style("fill", "#0d4148FF")
+                    }
+                    if(timesToPrint[1] != null){
+                        //legenda linha x
+                        svg.append('text')
+                            .attr('id', 'legendaLine2') 
+                            .text(timesToPrint[1])
+                            .attr('x', 160)
+                            .attr('y', 460)
+                            .style("font-family", "Roboto")
+                            .style("font-size", '12px')
+                            .style("fill", "#0d4148FF")
+                    }
+                    if(timesToPrint[2] != null){
+                        //legenda linha x
+                        svg.append('text')
+                            .attr('id', 'legendaLine3')
+                            .text(timesToPrint[2])
+                            .attr('x', 240)
+                            .attr('y', 440)
+                            .style("font-family", "Roboto")
+                            .style("font-size", '12px')
+                            .style("fill", "#0d4148FF")
+                    }
+                    if(timesToPrint[3] != null){
+                        //legenda linha x
+                        svg.append('text')
+                            .attr('id', 'legendaLine4') 
+                            .text(timesToPrint[3])
+                            .attr('x', 320)
+                            .attr('y', 460)
+                            .style("font-family", "Roboto")
+                            .style("font-size", '12px')
+                            .style("fill", "#0d4148FF")
+                    }
+
+                } else { 
+                    if(timesToPrint[timesToPrint.length - 4]  != null){
+                        svg.append('text')
+                            .attr('id', 'legendaLine1') 
+                            .text(timesToPrint[timesToPrint.length - 4])
+                            .attr('x', 80)
+                            .attr('y', 440)
+                            .style("font-family", "Roboto")
+                            .style("font-size", '12px')
+                            .style("fill", "#0d4148FF")
+                    }
+                    if(timesToPrint[timesToPrint.length - 3]  != null){
+                        //legenda linha x
+                        svg.append('text')
+                            .attr('id', 'legendaLine2') 
+                            .text(timesToPrint[timesToPrint.length - 3])
+                            .attr('x', 160)
+                            .attr('y', 460)
+                            .style("font-family", "Roboto")
+                            .style("font-size", '12px')
+                            .style("fill", "#0d4148FF")
+                    }
+                    if(timesToPrint[timesToPrint.length - 2]  != null){
+                        //legenda linha x
+                        svg.append('text')
+                            .attr('id', 'legendaLine3')
+                            .text(timesToPrint[timesToPrint.length - 2])
+                            .attr('x', 240)
+                            .attr('y', 440)
+                            .style("font-family", "Roboto")
+                            .style("font-size", '12px')
+                            .style("fill", "#0d4148FF")
+                    }
+                    if(timesToPrint[timesToPrint.length - 1] != null){
+                        //legenda linha x
+                        svg.append('text')
+                            .attr('id', 'legendaLine4') 
+                            .text(timesToPrint[timesToPrint.length - 1])
+                            .attr('x', 320)
+                            .attr('y', 460)
+                            .style("font-family", "Roboto")
+                            .style("font-size", '12px')
+                            .style("fill", "#0d4148FF")
+                    }
+
+                }
+                    
+            }
 
 
                 //MAPA
@@ -1127,9 +1861,20 @@ var caminho2 = "M122.405937,242.241241 "
                 var ratingsGaleria = []
                 var ratingsProject = []
 
+                var ratingsExteriorCount = 0
+                var ratingsOvalCount = 0
+                var ratingsVideoCount = 0
+                var ratingsGaleriaCount = 0
+                var ratingsProjectCount = 0
+
                 
                 var futures = []
                 var visits = []
+                var visitsExterior = []
+                var visitsOval = []
+                var visitsVideo = []
+                var visitsGaleria = []
+                var visitsProject = []
                 var justificationsExterior = []
                 var justificationsOval = []
                 var justificationsVideo = []
@@ -1147,10 +1892,47 @@ var caminho2 = "M122.405937,242.241241 "
                     ratingsGaleria.push(element.ratingGaleria);
                     ratingsProject.push(element.ratingProject);
 
+
+                    //NON NULL RATINGS
+                    if(element.ratingExterior != null){
+                        ratingsExteriorCount += 1
+                    }
+                    if(element.ratingOval != null){
+                        ratingsOvalCount += 1
+                    }
+                    if(element.ratingVideo != null){
+                        ratingsVideoCount += 1
+                    }
+                    if(element.ratingGaleria != null){
+                        ratingsGaleriaCount += 1
+                    }
+                    if(element.ratingProject != null){
+                        ratingsProjectCount += 1
+                    }
+
                     //FUTURES
                     futures.push(element.future);
                     //VISITAS
-                    visits.push(element.visita);
+                    if( element.visitaE == 'Sim'){
+                        visits.push('Exterior do museu')
+                    }
+                    if( element.visitaO == 'Sim'){
+                        visits.push('Sala Oval')
+                    }
+                    if( element.visitaV == 'Sim'){
+                        visits.push('Video Room')
+                    }
+                    if( element.visitaG == 'Sim'){
+                        visits.push('Galeria Principal')
+                    }
+                    if( element.visitaP == 'Sim'){
+                        visits.push('Project Room')
+                    }
+                    visitsExterior.push(element.visitaE)
+                    visitsOval.push(element.visitaS)
+                    visitsVideo.push(element.visitaV)
+                    visitsGaleria.push(element.visitaG)
+                    visitsProject.push(element.visitaP)
                     justificationsExterior.push(element.justificacaoExterior)
                     justificationsOval.push(element.justificacaoOval)
                     justificationsVideo.push(element.justificacaoVideo)
@@ -1161,38 +1943,34 @@ var caminho2 = "M122.405937,242.241241 "
                 }
                 
 
-            
-
-                
-
                 //CALCULAR MEDIA EXTERIOR
                 mediaE = d3.sum(ratingsExterior);
-                var mediaExterior = mediaE / ratingsExterior.length;
+                var mediaExterior = mediaE / ratingsExteriorCount;
 
                 //CALCULAR MEDIA OVAL
                 mediaO = d3.sum(ratingsOval);
-                var mediaOval = mediaO / ratingsOval.length;
+                var mediaOval = mediaO / ratingsOvalCount;
 
                 //CALCULAR MEDIA VIDEO
                 mediaV = d3.sum(ratingsVideo);
-                var mediaVideo = mediaV / ratingsVideo.length;
+                var mediaVideo = mediaV / ratingsVideoCount;
                 
                 //CALCULAR MEDIA GALERIA
                 mediaG = d3.sum(ratingsGaleria);
-                var mediaGaleria = mediaG / ratingsGaleria.length;
+                var mediaGaleria = mediaG / ratingsGaleriaCount;
 
                 //CALCULAR MEDIA PROJECT
                 mediaP = d3.sum(ratingsProject);
-                var mediaProject = mediaP / ratingsProject.length;
+                var mediaProject = mediaP / ratingsProjectCount;
 
-                var corExterior = 0
-                var corOval = 0
-                var corVideo = 0
-                var corGaleria = 0
-                var corProject = 0
+                var corExterior = 'white'
+                var corOval = 'white'
+                var corVideo = 'white'
+                var corGaleria = 'white'
+                var corProject = 'white'
 
                 //CORES EXTERIOR
-                if(mediaExterior >= 0 && mediaExterior < 1.5){
+                if(mediaExterior > 0 && mediaExterior < 1.5){
                     corExterior = '#F60D0D';
                 } else if (mediaExterior >= 1.5 && mediaExterior < 2.5){
                     corExterior = "#FF9900";
@@ -1205,7 +1983,7 @@ var caminho2 = "M122.405937,242.241241 "
                 }
 
                 //CORES OVAL
-                if(mediaOval >= 0 && mediaOval < 1.5){
+                if(mediaOval > 0 && mediaOval < 1.5){
                     corOval = '#F60D0D';
                 } else if (mediaOval >= 1.5 && mediaOval < 2.5){
                     corOval = "#FF9900";
@@ -1218,7 +1996,7 @@ var caminho2 = "M122.405937,242.241241 "
                 }
 
                 //CORES VIDEO
-                if(mediaVideo>= 0 && mediaVideo < 1.5){
+                if(mediaVideo> 0 && mediaVideo < 1.5){
                     corVideo = '#F60D0D';
                 } else if (mediaVideo >= 1.5 && mediaVideo < 2.5){
                     corVideo = "#FF9900";
@@ -1231,7 +2009,7 @@ var caminho2 = "M122.405937,242.241241 "
                 }
 
                 //CORES GALERIA
-                if(mediaGaleria >= 0 && mediaGaleria < 1.5){
+                if(mediaGaleria > 0 && mediaGaleria < 1.5){
                     corGaleria = '#F60D0D';
                 } else if (mediaGaleria >= 1.5 && mediaGaleria < 2.5){
                     corGaleria = "#FF9900";
@@ -1244,7 +2022,7 @@ var caminho2 = "M122.405937,242.241241 "
                 }
 
                 //CORES PROJECT
-                if(mediaProject >= 0 && mediaProject < 1.5){
+                if(mediaProject > 0 && mediaProject < 1.5){
                     corProject = '#F60D0D';
                 } else if (mediaProject >= 1.5 && mediaProject < 2.5){
                     corProject = "#FF9900";
@@ -1256,12 +2034,6 @@ var caminho2 = "M122.405937,242.241241 "
                     corProject = '#3FD25F';
                 }
 
-                
-                var ratingExterior = 0
-                var ratingOval = 0
-                var ratingVideo= 0
-                var ratingGaleria = 0
-                var ratingProject = 0
 
                 var ratingUserExterior = 0
                 var ratingUserOval = 0
@@ -1301,19 +2073,19 @@ var caminho2 = "M122.405937,242.241241 "
                 for(let index = 0; index < d.length; index++){
                     element = d[index];
                     //se valor dif de zero, +1 visita
-                    if(element.visita.includes("Exterior do museu")){
+                    if(element.visitaE == 'Sim'){
                         countExterior += 1
                     }
-                    if(element.visita.includes("Sala Oval")){
+                    if(element.visitaO == 'Sim'){
                         countOval += 1
                     }
-                    if(element.visita.includes("Video Room")){
+                    if(element.visitaV == 'Sim'){
                         countVideo += 1
                     }
-                    if(element.visita.includes("Galeria Principal")){
+                    if(element.visitaG == 'Sim'){
                         countGaleria += 1
                     }
-                    if(element.visita.includes("Project Room")){
+                    if(element.visitaP == 'Sim'){
                         countProject += 1
                     }
                 }
@@ -1374,8 +2146,7 @@ var caminho2 = "M122.405937,242.241241 "
 
                 function verNumeroSalas(){
                     //SE OS COUNTS FOREM IGUAIS PARA TODOS OS ELEMENTOS, METER A COR MÁXIMA EM TODOS
-                    console.log('counts')
-                    console.log(counts)
+
                     if(countExterior == countOval && countExterior == countVideo && countExterior == countGaleria && countExterior == countProject){
                         corVisitaExterior = "#1D2268FF"
                         corVisitaOval = "#1D2268FF"
@@ -1383,14 +2154,9 @@ var caminho2 = "M122.405937,242.241241 "
                         corVisitaGaleria = "#1D2268FF"
                         corVisitaProject = "#1D2268FF"
                     }
-                    //CASO CONTRÁRIO, O ELEMENTO MAIS BAIXO FICA COM A MINIMA COR, o MAIS ALTO COM A MAXIMA e os medios com a media
+                    //CASO CONTRÁRIO, O ELEMENTO MAIS ALTO FICA COM A MAXIMA COR
                     else{
-                        console.log('1')
-                        console.log(corVisitaExterior)
-                        console.log(corVisitaOval)
-                        console.log(corVisitaVideo)
-                        console.log(corVisitaGaleria)
-                        console.log(corVisitaProject)
+
                         //MENOR COUNT
                         if(counts[0]['id'] == 'e') corVisitaExterior = "#C7E2DCFF"
                         if(counts[0]['id'] == 'o') corVisitaOval = "#C7E2DCFF"
@@ -1404,34 +2170,29 @@ var caminho2 = "M122.405937,242.241241 "
                         if(counts[4]['id'] == 'g') corVisitaGaleria = "#1D2268FF"
                         if(counts[4]['id'] == 'p') corVisitaProject = "#1D2268FF"
                         //MEDIO
-                        if(counts[1]['id'] == 'e') corVisitaExterior = "#669BE2FF"
-                        if(counts[1]['id'] == 'o') corVisitaOval = "#669BE2FF"
-                        if(counts[1]['id'] == 'v') corVisitaVideo = "#669BE2FF"
-                        if(counts[1]['id'] == 'g') corVisitaGaleria = "#669BE2FF"
-                        if(counts[1]['id'] == 'p') corVisitaProject = "#669BE2FF"
+                        if(counts[1]['id'] == 'e') corVisitaExterior = "#C7E2DCFF"
+                        if(counts[1]['id'] == 'o') corVisitaOval = "#C7E2DCFF"
+                        if(counts[1]['id'] == 'v') corVisitaVideo = "#C7E2DCFF"
+                        if(counts[1]['id'] == 'g') corVisitaGaleria = "#C7E2DCFF"
+                        if(counts[1]['id'] == 'p') corVisitaProject = "#C7E2DCFF"
 
-                        if(counts[2]['id'] == 'e') corVisitaExterior = "#669BE2FF"
-                        if(counts[2]['id'] == 'o') corVisitaOval = "#669BE2FF"
-                        if(counts[2]['id'] == 'v') corVisitaVideo = "#669BE2FF"
-                        if(counts[2]['id'] == 'g') corVisitaGaleria = "#669BE2FF"
-                        if(counts[2]['id'] == 'p') corVisitaProject = "#669BE2FF"
+                        if(counts[2]['id'] == 'e') corVisitaExterior = "#C7E2DCFF"
+                        if(counts[2]['id'] == 'o') corVisitaOval = "#C7E2DCFF"
+                        if(counts[2]['id'] == 'v') corVisitaVideo = "#C7E2DCFF"
+                        if(counts[2]['id'] == 'g') corVisitaGaleria = "#C7E2DCFF"
+                        if(counts[2]['id'] == 'p') corVisitaProject = "#C7E2DCFF"
 
-                        if(counts[3]['id'] == 'e') corVisitaExterior = "#669BE2FF"
-                        if(counts[3]['id'] == 'o') corVisitaOval = "#669BE2FF"
-                        if(counts[3]['id'] == 'v') corVisitaVideo = "#669BE2FF"
-                        if(counts[3]['id'] == 'g') corVisitaGaleria = "#669BE2FF"
-                        if(counts[3]['id'] == 'p') corVisitaProject = "#669BE2FF"
+                        if(counts[3]['id'] == 'e') corVisitaExterior = "#C7E2DCFF"
+                        if(counts[3]['id'] == 'o') corVisitaOval = "#C7E2DCFF"
+                        if(counts[3]['id'] == 'v') corVisitaVideo = "#C7E2DCFF"
+                        if(counts[3]['id'] == 'g') corVisitaGaleria = "#C7E2DCFF"
+                        if(counts[3]['id'] == 'p') corVisitaProject = "#C7E2DCFF"
                     }
 
                     //VAMOS VER OS ELEMENTOS DO MEIO
                     //CASO SEJAM IGUAiS AO PRIMEIRO
                     if(counts[1]['count'] == counts[0]['count']){
-                        console.log('2')
-                        console.log(corVisitaExterior)
-                        console.log(corVisitaOval)
-                        console.log(corVisitaVideo)
-                        console.log(corVisitaGaleria)
-                        console.log(corVisitaProject)
+
                         if(counts[1]['id'] == 'e') corVisitaExterior = "#C7E2DCFF"
                         if(counts[1]['id'] == 'o') corVisitaOval = "#C7E2DCFF"
                         if(counts[1]['id'] == 'v') corVisitaVideo = "#C7E2DCFF"
@@ -1440,7 +2201,6 @@ var caminho2 = "M122.405937,242.241241 "
 
                     }
                     if(counts[2]['count'] == counts[0]['count']){
-                        console.log('3')
                         if(counts[2]['id'] == 'e') corVisitaExterior = "#C7E2DCFF"
                         if(counts[2]['id'] == 'o') corVisitaOval = "#C7E2DCFF"
                         if(counts[2]['id'] == 'v') corVisitaVideo = "#C7E2DCFF"
@@ -1449,7 +2209,6 @@ var caminho2 = "M122.405937,242.241241 "
 
                     }
                     if(counts[3]['count'] == counts[0]['count']){
-                        console.log('4')
                         if(counts[3]['id'] == 'e') corVisitaExterior = "#C7E2DCFF"
                         if(counts[3]['id'] == 'o') corVisitaOval = "#C7E2DCFF"
                         if(counts[3]['id'] == 'v') corVisitaVideo = "#C7E2DCFF"
@@ -1460,7 +2219,6 @@ var caminho2 = "M122.405937,242.241241 "
                     else{
                         //CASO SEJAM IGUAiS AO ULTIMO
                         if(counts[1]['count'] == counts[4]['count']){
-                            console.log('5')
                             if(counts[1]['id'] == 'e') corVisitaExterior = "#1D2268FF"
                             if(counts[1]['id'] == 'o') corVisitaOval = "#1D2268FF"
                             if(counts[1]['id'] == 'v') corVisitaVideo = "#1D2268FF"
@@ -1468,7 +2226,6 @@ var caminho2 = "M122.405937,242.241241 "
                             if(counts[1]['id'] == 'p') corVisitaProject = "#1D2268FF"
                         }
                         if(counts[2]['count'] == counts[4]['count']){
-                            console.log('6')
                             if(counts[2]['id'] == 'e') corVisitaExterior = "#1D2268FF"
                             if(counts[2]['id'] == 'o') corVisitaOval = "#1D2268FF"
                             if(counts[2]['id'] == 'v') corVisitaVideo = "#1D2268FF"
@@ -1476,12 +2233,6 @@ var caminho2 = "M122.405937,242.241241 "
                             if(counts[2]['id'] == 'p') corVisitaProject = "#1D2268FF"
                         }
                         if(counts[3]['count'] == counts[4]['count']){
-                            console.log('7')
-                            console.log(corVisitaExterior)
-                        console.log(corVisitaOval)
-                        console.log(corVisitaVideo)
-                        console.log(corVisitaGaleria)
-                        console.log(corVisitaProject)
                             if(counts[3]['id'] == 'e') corVisitaExterior = "#1D2268FF"
                             if(counts[3]['id'] == 'o') corVisitaOval = "#1D2268FF"
                             if(counts[3]['id'] == 'v') corVisitaVideo = "#1D2268FF"
@@ -1492,7 +2243,6 @@ var caminho2 = "M122.405937,242.241241 "
                         else{
                             //SE OS TRES FOREM IGUAIS ENTRE SI, VAO TER O VALOR DO MEIO
                             if(counts[1]['count'] == counts[2]['count'] && counts[1]['count'] == counts[3]['count']){
-                                console.log('8')
                                 if(counts[1]['id'] == 'e') corVisitaExterior = "#669BE2FF"
                                 if(counts[1]['id'] == 'o') corVisitaOval = "#669BE2FF"
                                 if(counts[1]['id'] == 'v') corVisitaVideo = "#669BE2FF"
@@ -1516,7 +2266,6 @@ var caminho2 = "M122.405937,242.241241 "
                             else{
                                 //SE OS DOIS PRIMEIROS FOREM IGUAIS
                                 if(counts[1]['count'] == counts[2]['count'] && counts[1]['count'] != counts[3]['count']){
-                                    console.log('9')
                                     if(counts[1]['id'] == 'e') corVisitaExterior = "#96E2CFFF"
                                     if(counts[1]['id'] == 'o') corVisitaOval = "#96E2CFFF"
                                     if(counts[1]['id'] == 'v') corVisitaVideo = "#96E2CFFF"
@@ -1540,7 +2289,6 @@ var caminho2 = "M122.405937,242.241241 "
                                 else{
                                     //SE OS DOIS ULTIMOS FOREM IGUAIS
                                     if(counts[1]['count'] != counts[2]['count'] && counts[2]['count'] == counts[3]['count']){
-                                        console.log('10')
                                         if(counts[1]['id'] == 'e') corVisitaExterior = "#96E2CFFF"
                                         if(counts[1]['id'] == 'o') corVisitaOval = "#96E2CFFF"
                                         if(counts[1]['id'] == 'v') corVisitaVideo = "#96E2CFFF"
@@ -1564,7 +2312,6 @@ var caminho2 = "M122.405937,242.241241 "
                                     //SE PONTAS DO MEIO IGUAIS
                                     else {
                                         if(counts[1]['count'] == counts[3]['count'] && counts[1]['count'] != counts[2]['count']){
-                                            console.log('11')
                                             if(counts[1]['id'] == 'e') corVisitaExterior = "#4049E2FF"
                                             if(counts[1]['id'] == 'o') corVisitaOval = "#4049E2FF"
                                             if(counts[1]['id'] == 'v') corVisitaVideo = "#4049E2FF"
@@ -1587,7 +2334,6 @@ var caminho2 = "M122.405937,242.241241 "
                                         }
                                         //SE FOREM OS TRES DIFERENTES
                                         else{
-                                            console.log('12')
                                             if(counts[1]['id'] == 'e') corVisitaExterior = "#96E2CFFF"
                                             if(counts[1]['id'] == 'o') corVisitaOval = "#96E2CFFF"
                                             if(counts[1]['id'] == 'v') corVisitaVideo = "#96E2CFFF"
@@ -1616,8 +2362,7 @@ var caminho2 = "M122.405937,242.241241 "
                             }
                         }
                     } 
-                    console.log('CONFIRMAR COR')
-                    console.log(corVisitaGaleria)                         
+                        
                 }
 
                 
@@ -1660,7 +2405,8 @@ var caminho2 = "M122.405937,242.241241 "
                         corFutureGaleria = "#BF4E00FF"
                         corFutureProject = "#BF4E00FF"
                     }
-                    //CASO CONTRÁRIO, O ELEMENTO MAIS BAIXO FICA COM A MINIMA COR E O MAIS ALTO COM A MAXIMA
+                    
+                    //CASO CONTRÁRIO, O ELEMENTO MAIS ALTO COM A MAXIMA COR
                     else{
                         //MENOR COUNT
                         if(countsFuture[0]['id'] == 'e') corFutureExterior = "#FFE2BBFF"
@@ -1675,23 +2421,23 @@ var caminho2 = "M122.405937,242.241241 "
                         if(countsFuture[4]['id'] == 'g') corFutureGaleria = "#BF4E00FF"
                         if(countsFuture[4]['id'] == 'p') corFutureProject = "#BF4E00FF"
                         //MEDIO
-                        if(counts[1]['id'] == 'e') corFutureExterior = "#E2B266FF"
-                        if(counts[1]['id'] == 'o') corFutureOval = "#E2B266FF"
-                        if(counts[1]['id'] == 'v') corFutureVideo = "#E2B266FF"
-                        if(counts[1]['id'] == 'g') corFutureGaleria = "#E2B266FF"
-                        if(counts[1]['id'] == 'p') corFutureProject = "#E2B266FF"
+                        if(counts[1]['id'] == 'e') corFutureExterior = "#FFE2BBFF"
+                        if(counts[1]['id'] == 'o') corFutureOval = "#FFE2BBFF"
+                        if(counts[1]['id'] == 'v') corFutureVideo = "#FFE2BBFF"
+                        if(counts[1]['id'] == 'g') corFutureGaleria = "#FFE2BBFF"
+                        if(counts[1]['id'] == 'p') corFutureProject = "#FFE2BBFF"
 
-                        if(counts[2]['id'] == 'e') corFutureExterior = "#E2B266FF"
-                        if(counts[2]['id'] == 'o') corFutureOval = "#E2B266FF"
-                        if(counts[2]['id'] == 'v') corFutureVideo = "#E2B266FF"
-                        if(counts[2]['id'] == 'g') corFutureGaleria = "#E2B266FF"
-                        if(counts[2]['id'] == 'p') corFutureProject = "#E2B266FF"
+                        if(counts[2]['id'] == 'e') corFutureExterior = "#FFE2BBFF"
+                        if(counts[2]['id'] == 'o') corFutureOval = "#FFE2BBFF"
+                        if(counts[2]['id'] == 'v') corFutureVideo = "#FFE2BBFF"
+                        if(counts[2]['id'] == 'g') corFutureGaleria = "#FFE2BBFF"
+                        if(counts[2]['id'] == 'p') corFutureProject = "#FFE2BBFF"
 
-                        if(counts[3]['id'] == 'e') corFutureExterior = "#E2B266FF"
-                        if(counts[3]['id'] == 'o') corFutureOval = "#E2B266FF"
-                        if(counts[3]['id'] == 'v') corFutureVideo = "#E2B266FF"
-                        if(counts[3]['id'] == 'g') corFutureGaleria = "#E2B266FF"
-                        if(counts[3]['id'] == 'p') corFutureProject = "#E2B266FF"
+                        if(counts[3]['id'] == 'e') corFutureExterior = "#FFE2BBFF"
+                        if(counts[3]['id'] == 'o') corFutureOval = "#FFE2BBFF"
+                        if(counts[3]['id'] == 'v') corFutureVideo = "#FFE2BBFF"
+                        if(counts[3]['id'] == 'g') corFutureGaleria = "#FFE2BBFF"
+                        if(counts[3]['id'] == 'p') corFutureProject = "#FFE2BBFF"
                     }
 
                     //VAMOS VER OS ELEMENTOS DO MEIO
@@ -2302,7 +3048,9 @@ var caminho2 = "M122.405937,242.241241 "
 
                         innerSVG.raise()
 
-                        var verificar = 'user' + document.getElementById(idOfClickedUser).id
+
+
+                        var verificar = 'user' + idOfClickedUser
                         var client = d3.select("#" + verificar)
                             
                         if(client.classed("selected")){
@@ -2386,8 +3134,7 @@ var caminho2 = "M122.405937,242.241241 "
                                     a = parseInt(d3.select(this).attr('x')) + 5
                                     b = parseInt(d3.select(this).attr('y')) + 15
                                     c = parseInt(d3.select(this).attr('y')) + 60
-                                    console.log("JUSTIFICACAO GALERIA")
-                                    console.log(justificationUserGaleria)
+                        
                                     if(justificationUserGaleria != ""){
                                         d3.select('#tooltip')
                                         .transition().duration(200)
@@ -2521,8 +3268,7 @@ var caminho2 = "M122.405937,242.241241 "
                                     a = parseInt(d3.select(this).attr('x')) + 5
                                     b = parseInt(d3.select(this).attr('y')) + 15
                                     c = parseInt(d3.select(this).attr('y')) + 60
-                                    console.log('JUSTIFICATION OVAL')
-                                    console.log(justificationUserOval)
+                                    
                                     if(justificationUserOval != ""){
                                         d3.select('#tooltip')
                                         .transition().duration(200)
@@ -2880,7 +3626,8 @@ var caminho2 = "M122.405937,242.241241 "
                             .style("font-family", "Roboto")
                             .style("font-size", '14px')
 
-                            var verificar = 'user' + document.getElementById(idOfClickedUser).id
+                            //var verificar = 'user' + document.getElementById(idOfClickedUser).id
+                            var verificar = 'user' + idOfClickedUser
                             var client = d3.select("#" + verificar)
 
 
@@ -3279,7 +4026,8 @@ var caminho2 = "M122.405937,242.241241 "
                             .style("font-family", "Roboto")
                             .style("font-size", '14px')
 
-                        var verificar = 'user' + document.getElementById(idOfClickedUser).id
+                        //var verificar = 'user' + document.getElementById(idOfClickedUser).id
+                        var verificar = 'user' + idOfClickedUser
                         var client = d3.select("#" + verificar)
 
                         if(client.classed("selected")){
@@ -3774,36 +4522,36 @@ var caminho2 = "M122.405937,242.241241 "
                             //ROOMS VISITED
                             //AND GET THE JUSTIFICATIONS
 
-                            
-                            if(visits[indexToGet].includes('Exterior do museu')){
+                  
+                            if(visitsExterior[indexToGet] == 'Sim'){
                                 visitUserExterior = 1;
                                 justificationUserExterior = justificationsExterior[indexToGet]
                             } else{
                                 visitUserExterior = 0;
                                 justificationUserExterior = "Espaço não visitado"
                             } 
-                            if(visits[indexToGet].includes('Sala Oval')){
+                            if(visitsOval[indexToGet] == 'Sim'){                                
                                 visitUserOval = 1;
                                 justificationUserOval = justificationsOval[indexToGet]
                             } else{
                                 visitUserOval = 0;
                                 justificationUserOval = "Espaço não visitado"
                             } 
-                            if(visits[indexToGet].includes('Video Room')){
+                            if(visitsVideo[indexToGet] == 'Sim'){                                
                                 visitUserVideo = 1;
                                 justificationUserVideo = justificationsVideo[indexToGet]
                             } else{
                                 visitUserVideo = 0;
                                 justificationUserVideo = "Espaço não visitado"
                             } 
-                            if(visits[indexToGet].includes('Galeria Principal')){
+                            if(visitsGaleria[indexToGet] == 'Sim'){                                
                                 visitUserGaleria = 1;
                                 justificationUserGaleria = justificationsGaleria[indexToGet]
                             } else{
                                 visitUserGaleria = 0;
                                 justificationUserGaleria = "Espaço não visitado"
                             } 
-                            if(visits[indexToGet].includes('Project Room')){
+                            if(visitsProject[indexToGet] == 'Sim'){                                
                                 visitUserProject = 1;
                                 justificationUserProject = justificationsProject[indexToGet]
                             } else{
@@ -3811,11 +4559,7 @@ var caminho2 = "M122.405937,242.241241 "
                                 justificationUserProject = "Espaço não visitado"
                             } 
 
-                            console.log('VERIFICAR JUSTIFICAÇÕES')
-                            console.log(visits[indexToGet].includes('Sala Oval'))
-                            console.log(justificationUserOval)
-
-                           
+    
 
                             //GET COLORS
 
