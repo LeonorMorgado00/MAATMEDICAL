@@ -814,6 +814,7 @@ var caminho2 = "M122.405937,242.241241 "
 
 
 
+
                         //get all ratings by that user
                         //get the indexes of the selected id
                         var indexesForRatings = []
@@ -825,11 +826,13 @@ var caminho2 = "M122.405937,242.241241 "
                         //get all the rating given
                         var allRatingsAntesByUser = []
                         var allRatingsAposByUser = []
-                        for(let index4 = 0; index4 < indexesForRatings.length; index4++){
-                            allRatingsAntesByUser.push(ratingsAntes[index4])
-                            allRatingsAposByUser.push(ratingsApos[index4])
-                        }
                         
+                        for(let index4 = 0; index4 < idsNotOrganized.length; index4++){
+                            if(indexesForRatings.includes(index4)){
+                                allRatingsAntesByUser.push(ratingsAntes[index4])
+                                allRatingsAposByUser.push(ratingsApos[index4]) 
+                            }
+                        }                        
 
                         //CORES
                         //SQUARES USER INDIVIDUAL
@@ -1970,8 +1973,6 @@ var caminho2 = "M122.405937,242.241241 "
                 mediaP = d3.sum(ratingsProject);
                 var mediaProject = mediaP / ratingsProjectCount;
 
-                console.log(ratingsProject)
-                console.log(mediaP)
 
                 var corExterior = 'white'
                 var corOval = 'white'
